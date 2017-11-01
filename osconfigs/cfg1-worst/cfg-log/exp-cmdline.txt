@@ -1,0 +1,1 @@
+BOOT_IMAGE=/vmlinuz-4.4.35 root=/dev/mapper/fedora-root ro rd.lvm.lv=fedora/root rd.lvm.lv=fedora/swap default_hugepagesz=1GB hugepagesz=1G hugepages=24 rhgb quiet tsc=reliable

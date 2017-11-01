@@ -1,0 +1,132 @@
+diff --git a/scripts/automation/trex_control_plane/stl/trex_stl_lib/trex_stl_stats.py b/scripts/automation/trex_control_plane/stl/trex_stl_lib/trex_stl_stats.py
+index fce3768..b734230 100644
+--- a/scripts/automation/trex_control_plane/stl/trex_stl_lib/trex_stl_stats.py
++++ b/scripts/automation/trex_control_plane/stl/trex_stl_lib/trex_stl_stats.py
+@@ -1228,7 +1228,13 @@ class CLatencyStats(CTRexStats):
+                 else:
+                     output[int_pg_id]['latency']['total_min'] = StatNotAvailable('total_min')
+                     output[int_pg_id]['latency']['histogram'] = {}
+-
++                
++                if 'histogram1us' in current_pg['latency']:
++                    output[int_pg_id]['latency']['histogram1us'] = {int(elem): current_pg['latency']['histogram1us'][elem]
++                                                                 for elem in current_pg['latency']['histogram1us']}
++                if 'histogram100ns' in current_pg['latency']:
++                     output[int_pg_id]['latency']['histogram100ns'] = {int(elem): current_pg['latency']['histogram100ns'][elem]
++                                                                 for elem in current_pg['latency']['histogram100ns']}
+         self.latest_stats = output
+         return True
+ 
+diff --git a/scripts/stl/flow_stats_latency.py b/scripts/stl/flow_stats_latency.py
+index e053549..48b7958 100644
+--- a/scripts/stl/flow_stats_latency.py
++++ b/scripts/stl/flow_stats_latency.py
+@@ -21,7 +21,7 @@ class STLS1(object):
+         pkt = STLPktBuilder(pkt = base_pkt/pad)
+ 
+         return [STLStream(packet = pkt,
+-                          mode = STLTXCont(pps=1000),
++                          mode = STLTXCont(pps=744047),
+                           flow_stats = STLFlowLatencyStats(pg_id = self.pg_id))
+                ]
+ 
+diff --git a/src/rpc-server/commands/trex_rpc_cmd_stream.cpp b/src/rpc-server/commands/trex_rpc_cmd_stream.cpp
+index 836dc5d..13a7b74 100644
+--- a/src/rpc-server/commands/trex_rpc_cmd_stream.cpp
++++ b/src/rpc-server/commands/trex_rpc_cmd_stream.cpp
+@@ -647,7 +647,9 @@ TrexRpcCmdStartTraffic::_run(const Json::Value &params, Json::Value &result) {
+     uint64_t  core_mask   = parse_uint64(params, "core_mask", result, TrexDPCoreMask::MASK_ALL);
+ 
+     if (!TrexDPCoreMask::is_valid_mask(port->get_dp_core_count(), core_mask)) {
+-        generate_parse_err(result, "invalid core mask provided");
++        char message[50];
++        sprintf(message, "invalid core mask, num masks %d", port->get_dp_core_count());
++        generate_parse_err(result, message);
+     }
+ 
+     /* multiplier */
+diff --git a/src/time_histogram.cpp b/src/time_histogram.cpp
+index b36fe16..391ce7f 100755
+--- a/src/time_histogram.cpp
++++ b/src/time_histogram.cpp
+@@ -44,11 +44,15 @@ void CTimeHistogram::Reset() {
+             m_hcnt[j][i] = 0;
+         }
+     }
++    //memset(&m_1us_hist[0], 0, sizeof(m_1us_hist));
++    //memset(&m_100ns_hist[0], 0, sizeof(m_100ns_hist));
+ }
+ 
+ bool CTimeHistogram::Create() {
+     Reset();
+-    m_min_delta =10.0/1000000.0;
++    //m_min_delta =10.0/1000000.0;
++    //m_min_delta = 1.0/1000000.0;
++    m_min_delta = 100.0/1000000000.0;
+     return (true);
+ }
+ 
+@@ -69,6 +73,8 @@ bool CTimeHistogram::Add(dsec_t dt) {
+     period_elem.inc_high_cnt();
+ 
+     uint32_t d_10usec = (uint32_t)(dt*100000.0);
++    //uint32_t d_1usec = (uint32_t)(dt*1000000.0);
++    uint32_t d_100nsec = (uint32_t)(dt*10000000.0);
+     // 1 10-19 usec
+     //,2 -20-29 usec
+     //,3,
+@@ -87,6 +93,15 @@ bool CTimeHistogram::Add(dsec_t dt) {
+             d_10usec = high;
+         }
+     }
++    //add d_1usec to my field
++    /*if (d_1usec < DETAIL_HIST_SIZE) {
++        int i1us = (int)d_1usec;  //there was -1 here! wrong!
++        m_1us_hist[i1us]++;
++    }*/
++    if (d_100nsec < DETAIL_HIST_SIZE*100) {
++        int i100ns = (int)d_100nsec;
++        m_100ns_hist[i100ns]++;
++    }
+ 
+     return true;
+ }
+@@ -243,5 +258,17 @@ void CTimeHistogram::dump_json(Json::Value & json, bool add_histogram) {
+             json["histogram"]["0"] = Json::Value::UInt64(m_total_cnt - m_total_cnt_high);
+         }
+     }
++/*    
++    for (i = 0; i < DETAIL_HIST_SIZE; i++) {
++        std::string key1us = static_cast<std::ostringstream*>( &(std::ostringstream()
++                                                                          << int(i) ) )->str();
++        json["histogram1us"][key1us] = Json::Value::UInt64(m_1us_hist[i]);
++    }
++*/
++    for (i = 0; i < DETAIL_HIST_SIZE; i++) {
++        std::string key100ns = static_cast<std::ostringstream*>( &(std::ostringstream()
++                                                                          << int((i+1)*100) ) )->str();
++        json["histogram100ns"][key100ns] = Json::Value::UInt64(m_100ns_hist[i]);
++    }
+ }
+ 
+diff --git a/src/time_histogram.h b/src/time_histogram.h
+index 0d532f1..322c6c3 100755
+--- a/src/time_histogram.h
++++ b/src/time_histogram.h
+@@ -67,6 +67,7 @@ public:
+         HISTOGRAM_SIZE=9,
+         HISTOGRAM_SIZE_LOG=5,
+         HISTOGRAM_QUEUE_SIZE=14,
++        DETAIL_HIST_SIZE=400,
+     };
+     bool Create(void);
+     void Delete();
+@@ -113,6 +114,8 @@ private:
+     dsec_t   m_average; /* moving average */
+     uint32_t m_win_cnt;
+     dsec_t   m_max_ar[HISTOGRAM_QUEUE_SIZE]; // Array of maximum latencies for previous periods
++    /*uint64_t m_1us_hist[DETAIL_HIST_SIZE]; //detailed hist */
++    uint64_t m_100ns_hist[DETAIL_HIST_SIZE];
+     uint64_t m_hcnt[HISTOGRAM_SIZE_LOG][HISTOGRAM_SIZE] __rte_cache_aligned ;
+ };
+ 

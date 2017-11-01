@@ -1,0 +1,143 @@
+Common subdirectories: src/.deps and ../netperf-2.7.0/src/.deps
+diff src/Makefile ../netperf-2.7.0/src/Makefile
+118c118
+< ACLOCAL = ${SHELL} /root/netperf-old/missing --run aclocal-1.11
+---
+> ACLOCAL = ${SHELL} /root/netperf-2.7.0/missing --run aclocal-1.11
+120,122c120,122
+< AUTOCONF = ${SHELL} /root/netperf-old/missing --run autoconf
+< AUTOHEADER = ${SHELL} /root/netperf-old/missing --run autoheader
+< AUTOMAKE = ${SHELL} /root/netperf-old/missing --run automake-1.11
+---
+> AUTOCONF = ${SHELL} /root/netperf-2.7.0/missing --run autoconf
+> AUTOHEADER = ${SHELL} /root/netperf-2.7.0/missing --run autoheader
+> AUTOMAKE = ${SHELL} /root/netperf-2.7.0/missing --run automake-1.11
+147c147
+< MAKEINFO = ${SHELL} /root/netperf-old/missing --run makeinfo
+---
+> MAKEINFO = ${SHELL} /root/netperf-2.7.0/missing --run makeinfo
+164,167c164,167
+< abs_builddir = /root/netperf-old/src
+< abs_srcdir = /root/netperf-old/src
+< abs_top_builddir = /root/netperf-old
+< abs_top_srcdir = /root/netperf-old
+---
+> abs_builddir = /root/netperf-2.7.0/src
+> abs_srcdir = /root/netperf-2.7.0/src
+> abs_top_builddir = /root/netperf-2.7.0
+> abs_top_srcdir = /root/netperf-2.7.0
+194c194
+< install_sh = ${SHELL} /root/netperf-old/install-sh
+---
+> install_sh = ${SHELL} /root/netperf-2.7.0/install-sh
+Common subdirectories: src/missing and ../netperf-2.7.0/src/missing
+diff src/netlib.c ../netperf-2.7.0/src/netlib.c
+83c83
+< #include <time.h>
+---
+> 
+4264,4265d4263
+<    /* MMM */
+< 
+4291,4300d4288
+<    /* MMM */
+< //   printf("MMM:timedelta %d\n", time_delta);
+<    if (time_delta < 100) {
+<         h->unit_usec[time_delta]++;
+<    }
+<    else {
+<         h->ten_usec[0]++;
+<    }
+<     return;
+4337d4324
+<   /* MMM */
+4361,4371d4347
+<   
+<    char filename[256];
+<    sprintf(filename, "%lu-netperf-res.csv", (unsigned long)time(NULL)); 
+<    FILE *f =  fopen(filename, "w+");
+< 
+<    for(int i=0; i<100; i++) {
+<      fprintf(f, "%d,%d\n", i, h->unit_usec[i]);
+<    }
+<    fprintf(f, "MAX,%d\n", h->ten_usec[0]);
+<    fclose(f);
+<    return;
+4374c4350
+<     output_row(stdout, "TEN_USEC      ", h->ten_usec);
+---
+>    output_row(stdout, "TEN_USEC      ", h->ten_usec);
+Binary files src/netlib.o and ../netperf-2.7.0/src/netlib.o differ
+Binary files src/netperf and ../netperf-2.7.0/src/netperf differ
+Common subdirectories: src/NetPerfDir and ../netperf-2.7.0/src/NetPerfDir
+Binary files src/netserver and ../netperf-2.7.0/src/netserver differ
+Common subdirectories: src/NetServerDir and ../netperf-2.7.0/src/NetServerDir
+Binary files src/netserver.o and ../netperf-2.7.0/src/netserver.o differ
+Binary files src/netsh.o and ../netperf-2.7.0/src/netsh.o differ
+diff src/nettest_bsd.c ../netperf-2.7.0/src/nettest_bsd.c
+6394c6394
+<     fprintf(where,"\nNETTEST_BSD1:Histogram of request/response times\n");
+---
+>     fprintf(where,"\nHistogram of request/response times\n");
+8031c8031
+<     fprintf(where,"\nNETTEST_BSD2:Histogram of request/reponse times.\n");
+---
+>     fprintf(where,"\nHistogram of request/reponse times.\n");
+9456c9456
+<     fprintf(where,"\nNETTEST_BSD3:Histogram of request/response times\n");
+---
+>     fprintf(where,"\nHistogram of request/response times\n");
+10506c10506
+<     fprintf(where,"\nNETTEST_BSD4:Histogram of request/response times\n");
+---
+>     fprintf(where,"\nHistogram of request/response times\n");
+11592c11592
+<     fprintf(where,"\nNETTEST_BSD5:Histogram of request/response times\n");
+---
+>     fprintf(where,"\nHistogram of request/response times\n");
+12574c12574
+<     fprintf(where,"\nNETTEST_BSD6:Histogram of request/response times\n");
+---
+>     fprintf(where,"\nHistogram of request/response times\n");
+Binary files src/nettest_bsd.o and ../netperf-2.7.0/src/nettest_bsd.o differ
+diff src/nettest_omni.c ../netperf-2.7.0/src/nettest_omni.c
+4912c4912
+<     fprintf(where,"\nOMNI: Histogram of ");
+---
+>     fprintf(where,"\nHistogram of ");
+6343c6343
+<       fprintf(where,"\nOMNI2: Histogram of request/response times\n");
+---
+>       fprintf(where,"\nHistogram of request/response times\n");
+6511c6511
+<       fprintf(where,"\nOMNI3: Histogram of request/response times\n");
+---
+>       fprintf(where,"\nHistogram of request/response times\n");
+6839c6839
+<       fprintf(where,"\nOMNI4:Histogram of request/reponse times.\n");
+---
+>       fprintf(where,"\nHistogram of request/reponse times.\n");
+Binary files src/nettest_omni.o and ../netperf-2.7.0/src/nettest_omni.o differ
+diff src/nettest_sctp.c ../netperf-2.7.0/src/nettest_sctp.c
+3224c3224
+<     fprintf(where,"\nNETTEST_SCTP:Histogram of request/response times\n");
+---
+>     fprintf(where,"\nHistogram of request/response times\n");
+4273c4273
+<     fprintf(where,"\nNETTEST_SCTP2:Histogram of request/response times\n");
+---
+>     fprintf(where,"\nHistogram of request/response times\n");
+diff src/nettest_sdp.c ../netperf-2.7.0/src/nettest_sdp.c
+2976c2976
+<     fprintf(where,"\nNETTEST_SDP:Histogram of request/response times\n");
+---
+>     fprintf(where,"\nHistogram of request/response times\n");
+diff src/nettest_xti.c ../netperf-2.7.0/src/nettest_xti.c
+2395c2395
+<     fprintf(where,"\nNETTEST_XTI1:Histogram of request/response times\n");
+---
+>     fprintf(where,"\nHistogram of request/response times\n");
+4132c4132
+<     fprintf(where,"\nNETTEST_XTI2:Histogram of request/reponse times.\n");
+---
+>     fprintf(where,"\nHistogram of request/reponse times.\n");
